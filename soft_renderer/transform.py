@@ -97,8 +97,6 @@ class Projection(Transform):
         r = torch.sqrt(x_ ** 2 + y_ ** 2)
         x__ = x_*(1 + k1*(r**2) + k2*(r**4) + k3*(r**6)) + 2*p1*x_*y_ + p2*(r**2 + 2*x_**2)
         y__ = y_*(1 + k1*(r**2) + k2*(r**4) + k3 * (r**6)) + p1*(r**2 + 2*y_**2) + 2*p2*x_*y_
-        x__ = 2 * (x__ - self.orig_size / 2.) / self.orig_size
-        y__ = 2 * (y__ - self.orig_size / 2.) / self.orig_size
         vertices = torch.stack([x__, y__, z], dim=-1)
         return vertices
 

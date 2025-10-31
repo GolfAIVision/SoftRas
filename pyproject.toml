@@ -43,3 +43,8 @@ packages = ["soft_renderer", "soft_renderer.cuda", "soft_renderer.functional"]
 
 [tool.setuptools.package-data]
 soft_renderer = ["*.cu", "*.cpp"]
+
+[dependency-groups]
+dev = [
+    "matplotlib>=3.9.4",
+]
