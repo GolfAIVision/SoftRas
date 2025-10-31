@@ -17,12 +17,38 @@ Soft Rasterizer (SoftRas) is a truly differentiable renderer framework with a no
 
 ## Usage
 
-The code is built on Python3 and PyTorch 1.6.0. CUDA (10.1) is needed in order to install the module. Our code is extended on the basis of [this repo](https://github.com/daniilidis-group/neural_renderer). `6/3/2021` update note: we add **testing models** and **recontructed color meshes** below, and also slightly optimized the code structure! Previous version is archived in the `legacy` branch.
+The code is built on Python3 and PyTorch 2.8+. CUDA 12.6 or 12.8 is required (depending on your PyTorch version). Our code is extended on the basis of [this repo](https://github.com/daniilidis-group/neural_renderer). `6/3/2021` update note: we add **testing models** and **recontructed color meshes** below, and also slightly optimized the code structure! Previous version is archived in the `legacy` branch.
 
+### Installation
 
-To install the module, using
+This project uses [uv](https://docs.astral.sh/uv/) for dependency management and includes automatic CUDA detection during build.
 
+**Prerequisites:**
+- PyTorch 2.8 or 2.9
+- CUDA Toolkit matching your PyTorch version:
+  - PyTorch 2.8: CUDA 12.6 or 12.8
+  - PyTorch 2.9: CUDA 12.8
+- The build system automatically detects PyTorch's CUDA version and finds the matching CUDA toolkit
+
+**Install as a standalone project:**
+
+```bash
+cd SoftRas
+uv sync
 ```
+
+**Add as a dependency to your project:**
+
+```bash
+uv add "soft-renderer @ git+https://github.com/ShichenLiu/SoftRas.git"
+```
+
+The custom build backend automatically finds and uses the appropriate CUDA installation. No manual configuration needed!
+
+**Alternative: Install with pip (legacy):**
+
+```bash
+export CUDA_HOME=/usr/local/cuda  # if you have multiple CUDA versions
 python setup.py install
 ```
 
