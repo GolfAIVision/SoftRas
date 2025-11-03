@@ -32,7 +32,7 @@ def find_and_set_cuda():
     # Fall back to searching for CUDA >= 12.8
     usr_local = Path("/usr/local")
     if usr_local.exists():
-        cuda_dirs = []
+        cuda_dirs: list[tuple[float, str]] = []
         for path in usr_local.glob("cuda-*"):
             if path.is_dir() and (path / "bin" / "nvcc").exists():
                 version_str = path.name.replace("cuda-", "")

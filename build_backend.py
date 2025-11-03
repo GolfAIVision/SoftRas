@@ -6,57 +6,64 @@ This wraps setuptools.build_meta and sets CUDA_HOME before building.
 import os
 import sys
 from pathlib import Path
+from tabnanny import verbose
 from setuptools import build_meta as _orig
 
 
-def _get_pytorch_cuda_version():
-    """Get the CUDA version that PyTorch was compiled with."""
+def get_major_minor_from_string(version_str: str) -> tuple[int, ...]:
+    parts = tuple([int(p) for p in version_str.split(".")])
+    assert len(parts) >= 1, f"Must have at least major version, got {version_str}."
+    return parts
+
+
+def _get_pytorch_cuda_version() -> tuple[int, ...] | None:
+    """Get the CUDA version that PyTorch was compiled with
+
+    Returns:
+        major, minor iff PyTorch found, None otherwise.
+    """
     try:
         import torch
 
-        cuda_version = torch.version.cuda
-        if cuda_version:
-            # Convert "aa.b" string to float
-            return float(cuda_version)
+        if cuda_version := torch.version.cuda:
+            return get_major_minor_from_string(cuda_version)
     except (ImportError, AttributeError, ValueError):
-        pass
-    return None
+        return None
 
 
 def _find_cuda():
     """
     Find CUDA installation compatible with PyTorch.
     Detects PyTorch's CUDA version and finds matching CUDA toolkit.
+
+    We assume the happy path, since we control the computers this code will run on.
+    So: there must be a major.minor version that matches the PyTorch version.
+
     """
     usr_local = Path("/usr/local")
     if not usr_local.exists():
         return None
 
     # Get PyTorch's CUDA version requirement
-    pytorch_cuda = _get_pytorch_cuda_version()
-    if pytorch_cuda:
-        print(
-            f"build_backend: PyTorch compiled with CUDA {pytorch_cuda}", file=sys.stderr
-        )
-
-    cuda_dirs = []
+    cuda_dirs: list[tuple[tuple[int, ...], str]] = []
 
     # Scan all CUDA installations
     for path in usr_local.glob("cuda-*"):
         if path.is_dir() and (path / "bin" / "nvcc").exists():
             version_str = path.name.replace("cuda-", "")
             try:
-                version = float(version_str)
+                version = get_major_minor_from_string(version_str)
                 cuda_dirs.append((version, str(path)))
             except ValueError:
                 pass
 
-    if pytorch_cuda:
+    if pytorch_cuda := _get_pytorch_cuda_version():
+        print(
+            f"build_backend: PyTorch compiled with CUDA {pytorch_cuda}", file=sys.stderr
+        )
         # Try to find exact match for PyTorch's CUDA version
         for version, path in cuda_dirs:
-            major = int(pytorch_cuda)
-            minor = int((pytorch_cuda - major) * 10)
-            if abs(version - pytorch_cuda) < 0.01:  # Exact match
+            if version == pytorch_cuda:
                 print(
                     f"build_backend: Found exact CUDA match {version}", file=sys.stderr
                 )
@@ -64,33 +71,18 @@ def _find_cuda():
 
         # Try to find same major.minor version
         for version, path in cuda_dirs:
-            if int(version) == int(pytorch_cuda) and version >= pytorch_cuda:
+            major, minor, *_ = version
+            pytorch_major, pytorch_minor, *_ = pytorch_cuda
+
+            if major == pytorch_major and minor == pytorch_minor:
                 print(
                     f"build_backend: Found compatible CUDA {version} for PyTorch {pytorch_cuda}",
                     file=sys.stderr,
                 )
                 return path
 
-    # Fall back to /usr/local/cuda symlink
-    cuda_default = Path("/usr/local/cuda")
-    if cuda_default.exists() and (cuda_default / "bin" / "nvcc").exists():
-        resolved = str(cuda_default.resolve())
-        print(
-            f"build_backend: Using system default CUDA symlink -> {resolved}",
-            file=sys.stderr,
-        )
-        return resolved
-
-    # Last resort: highest version >= 12.6 (minimum for PyTorch 2.8+)
-    compatible = [c for c in cuda_dirs if c[0] >= 12.6]
-    if compatible:
-        compatible.sort(reverse=True)
-        print(
-            f"build_backend: Using highest CUDA version {compatible[0][0]}",
-            file=sys.stderr,
-        )
-        return compatible[0][1]
-
+    # Give up if no match
+    print(f"Can't find exact match for CUDA PyTorch was built with - build may fail.")
     return None
 
 
