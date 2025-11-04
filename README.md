@@ -11,18 +11,44 @@ This repository contains the code (in PyTorch) for "[Soft Rasterizer: A Differen
 
 ## Introduction
 
-Soft Rasterizer (SoftRas) is a truly differentiable renderer framework with a novel formulation that views rendering as a **differentiable aggregating process** that fuses **probabilistic contributions** of all mesh triangles with respect to the rendered pixels. Thanks to such *"soft"* formulation, our framework is able to (1) directly render colorized mesh using differentiable functions and (2) back-propagate efficient supervision signals to mesh vertices and their attributes (color, normal, etc.) from various forms of image representations, including silhouette, shading and color images. 
+Soft Rasterizer (SoftRas) is a truly differentiable renderer framework with a novel formulation that views rendering as a **differentiable aggregating process** that fuses **probabilistic contributions** of all mesh triangles with respect to the rendered pixels. Thanks to such *"soft"* formulation, our framework is able to (1) directly render colorized mesh using differentiable functions and (2) back-propagate efficient supervision signals to mesh vertices and their attributes (color, normal, etc.) from various forms of image representations, including silhouette, shading and color images.
 
 <img src="https://raw.githubusercontent.com/ShichenLiu/SoftRas/master/data/media/teaser/teaser.png" width="60%">
 
 ## Usage
 
-The code is built on Python3 and PyTorch 1.6.0. CUDA (10.1) is needed in order to install the module. Our code is extended on the basis of [this repo](https://github.com/daniilidis-group/neural_renderer). `6/3/2021` update note: we add **testing models** and **recontructed color meshes** below, and also slightly optimized the code structure! Previous version is archived in the `legacy` branch.
+The code is built on Python3 and PyTorch 2.8+. CUDA 12.6 or 12.8 is required (depending on your PyTorch version). Our code is extended on the basis of [this repo](https://github.com/daniilidis-group/neural_renderer). `6/3/2021` update note: we add **testing models** and **recontructed color meshes** below, and also slightly optimized the code structure! Previous version is archived in the `legacy` branch.
 
+### Installation
 
-To install the module, using
+This project uses [uv](https://docs.astral.sh/uv/) for dependency management and includes automatic CUDA detection during build.
 
+**Prerequisites:**
+- PyTorch 2.8 or 2.9
+- CUDA Toolkit matching your PyTorch version:
+  - PyTorch 2.8: CUDA 12.6 or 12.8
+  - PyTorch 2.9: CUDA 12.8
+- The build system automatically detects PyTorch's CUDA version and finds the matching CUDA toolkit
+
+**Install as a standalone project:**
+
+```bash
+cd SoftRas
+uv sync
 ```
+
+**Add as a dependency to your project:**
+
+```bash
+uv add "soft-renderer @ git+https://github.com/ShichenLiu/SoftRas.git"
+```
+
+The custom build backend automatically finds and uses the appropriate CUDA installation.
+
+**Alternative: Install with pip (legacy):**
+
+```bash
+export CUDA_HOME=/usr/local/cuda  # if you have multiple CUDA versions
 python setup.py install
 ```
 
@@ -79,7 +105,7 @@ The optimized mesh is included in `data/obj/plane/plane.obj`
 
 ### 3. Pose Optimization for Rigid Objects
 
-With scheduled blurry renderings, one can obtain smooth energy landscape that avoids local minima. 
+With scheduled blurry renderings, one can obtain smooth energy landscape that avoids local minima.
 Below we demonstrate how a color cube is fitted to the target image in the presence of large occlusions.
 The blurry rendering and the corresponding rendering losses are shown in the 3rd and 4th columns respectively.
 

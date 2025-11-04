@@ -86,7 +86,7 @@ at::Tensor create_texture_image_cuda(
     const int image_size = image.numel();
     const dim3 blocks ((image_size / 3 - 1) / threads + 1);
 
-    AT_DISPATCH_FLOATING_TYPES(image.type(), "create_texture_image_cuda", ([&] {
+    AT_DISPATCH_FLOATING_TYPES(image.scalar_type(), "create_texture_image_cuda", ([&] {
       create_texture_image_cuda_kernel<scalar_t><<<blocks, threads>>>(
           faces.data<scalar_t>(),
           textures.data<scalar_t>(),
@@ -100,7 +100,7 @@ at::Tensor create_texture_image_cuda(
       }));
 
     cudaError_t err = cudaGetLastError();
-    if (err != cudaSuccess) 
+    if (err != cudaSuccess)
         printf("Error in create_texture_image: %s\n", cudaGetErrorString(err));
 
     return image;
